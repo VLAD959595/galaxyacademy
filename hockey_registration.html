@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация на хоккейный турнир</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #2a5298;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #e0e6ed;
+            padding-bottom: 10px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2a5298;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .form-group.full-width {
+            flex: 1 1 100%;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .hockey-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #2a5298;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .info-box h4 {
+            color: #2a5298;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="hockey-icon">🏒</div>
+            <h1>Зимний Хоккейный Турнир 2024</h1>
+            <p>Регистрация участников</p>
+        </div>
+
+        <div class="form-container">
+            <div class="info-box">
+                <h4>Информация о турнире</h4>
+                <p>Турнир пройдет с 15 по 25 февраля 2024 года. Регистрация команд до 1 февраля. Возрастные категории: юниоры (до 18 лет), взрослые (18-35 лет), ветераны (35+ лет).</p>
+            </div>
+
+            <form id="registrationForm" action="#" method="POST">
+                <div class="form-section">
+                    <h3>Личная информация</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">Имя <span class="required">*</span></label>
+                            <input type="text" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Фамилия <span class="required">*</span></label>
+                            <input type="text" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="birthDate">Дата рождения <span class="required">*</span></label>
+                            <input type="date" id="birthDate" name="birthDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Пол <span class="required">*</span></label>
+                            <select id="gender" name="gender" required>
+                                <option value="">Выберите пол</option>
+                                <option value="male">Мужской</option>
+                                <option value="female">Женский</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Контактная информация</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email <span class="required">*</span></label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Телефон <span class="required">*</span></label>
+                            <input type="tel" id="phone" name="phone" placeholder="+7 (xxx) xxx-xx-xx" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="address">Адрес</label>
+                            <input type="text" id="address" name="address" placeholder="Город, улица, дом">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Информация о команде</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="teamName">Название команды <span class="required">*</span></label>
+                            <input type="text" id="teamName" name="teamName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="playerNumber">Номер игрока</label>
+                            <input type="number" id="playerNumber" name="playerNumber" min="1" max="99">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="position">Позиция <span class="required">*</span></label>
+                            <select id="position" name="position" required>
+                                <option value="">Выберите позицию</option>
+                                <option value="goalkeeper">Вратарь</option>
+                                <option value="defender">Защитник</option>
+                                <option value="forward">Нападающий</option>
+                                <option value="center">Центральный нападающий</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="experience">Опыт игры (лет)</label>
+                            <input type="number" id="experience" name="experience" min="0" max="50">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Дополнительная информация</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category">Возрастная категория <span class="required">*</span></label>
+                            <select id="category" name="category" required>
+                                <option value="">Выберите категорию</option>
+                                <option value="junior">Юниоры (до 18 лет)</option>
+                                <option value="adult">Взрослые (18-35 лет)</option>
+                                <option value="veteran">Ветераны (35+ лет)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tshirtSize">Размер футболки</label>
+                            <select id="tshirtSize" name="tshirtSize">
+                                <option value="">Выберите размер</option>
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="medicalInfo">Медицинская информация</label>
+                            <textarea id="medicalInfo" name="medicalInfo" rows="3" placeholder="Укажите любые медицинские противопоказания, аллергии или особенности"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="comments">Комментарии</label>
+                            <textarea id="comments" name="comments" rows="3" placeholder="Дополнительная информация или пожелания"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="agreement" name="agreement" required>
+                        <label for="agreement">Я согласен с <a href="#" style="color: #2a5298;">правилами турнира</a> и обработкой персональных данных <span class="required">*</span></label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="newsletter" name="newsletter">
+                        <label for="newsletter">Получать уведомления о будущих турнирах</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    🏒 Зарегистрироваться на турнир
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Простая валидация
+            const requiredFields = document.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.style.borderColor = '#e74c3c';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '#e0e6ed';
+                }
+            });
+            
+            if (isValid) {
+                alert('Регистрация отправлена! Мы свяжемся с вами в ближайшее время.');
+                // Здесь можно добавить реальную отправку данных на сервер
+            } else {
+                alert('Пожалуйста, заполните все обязательные поля.');
+            }
+        });
+
+        // Автоматическое определение возрастной категории
+        document.getElementById('birthDate').addEventListener('change', function() {
+            const birthDate = new Date(this.value);
+            const today = new Date();
+            const age = today.getFullYear() - birthDate.getFullYear();
+            const categorySelect = document.getElementById('category');
+            
+            if (age < 18) {
+                categorySelect.value = 'junior';
+            } else if (age <= 35) {
+                categorySelect.value = 'adult';
+            } else {
+                categorySelect.value = 'veteran';
+            }
+        });
+
+        // Форматирование номера телефона
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (value[0] === '8') value = '7' + value.slice(1);
+                if (value[0] === '7') {
+                    value = value.replace(/^7(\d{3})(\d{3})(\d{2})(\d{2})/, '+7 ($1) $2-$3-$4');
+                }
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
