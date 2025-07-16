@@ -177,6 +177,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton("📝 Записаться на тренировку", callback_data='register')],
         [InlineKeyboardButton("🛒 Магазин Galaxy", callback_data='shop')],
         [InlineKeyboardButton("🏒 Программы обучения", callback_data='programs')],
+        [InlineKeyboardButton("💳 Цены сезон 2025/26", callback_data='prices')],
         [InlineKeyboardButton("📞 Контакты", callback_data='contact')],
         [InlineKeyboardButton("📰 Новости", callback_data='news')],
         [InlineKeyboardButton("💡 Советы по хоккею", callback_data='tips')]
@@ -202,6 +203,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await show_shop_categories(update, context)
     elif query.data == 'programs':
         await show_programs(update, context)
+    elif query.data == 'prices':
+        await show_prices(update, context)
     elif query.data == 'contact':
         await show_contact(update, context)
     elif query.data == 'news':
@@ -272,27 +275,82 @@ Sport Society Mall, район Мердив, Дубай 🇦🇪
 
 async def show_programs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show training programs."""
-    programs_text = "🏒 *Наши программы обучения* 🏒\n\n"
+    programs_text = """
+🏒 *Программы Galaxy Hockey Academy* 🏒
+
+🎯 *Возрастные группы:*
+• 🧒 Ю9 и Ю12 — младшая группа
+• 🧑 Ю15 и Ю18 — старшая группа
+
+📅 *Сезон 2025/2026:*
+С 1 сентября 2025 по 30 июня 2026
+
+🏒 *Что включено:*
+✅ On-Ice тренировки (на льду)
+🔵 Off-Ice тренировки (общая физподготовка)
+🏆 Участие в турнирах и соревнованиях
+👕 Экипировка Galaxy (при полной оплате)
+
+💡 *Программы:*
+🥅 **Try-Out** — разовое занятие для новичков
+📦 **Полный сезон** — комплексная программа 
+📦 **Триместры** — гибкая система оплаты
+
+💳 Подробные цены смотрите в разделе "Цены сезон 2025/26"
+    """
     
-    keyboard = []
-    bot = HockeyBot()
-    
-    for program_name, details in bot.training_programs.items():
-        programs_text += f"{program_name}\n"
-        programs_text += f"📝 {details['description']}\n"
-        programs_text += f"⏱️ Длительность: {details['duration']}\n"
-        programs_text += f"💰 Цена: {details['price']}\n"
-        programs_text += f"👥 Возраст: {details['age']}\n\n"
-        
-        # Create callback data for each program
-        callback_data = f"program_{program_name.split()[1].lower()}"
-        keyboard.append([InlineKeyboardButton(f"Выбрать {program_name}", callback_data=callback_data)])
-    
-    keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')])
+    keyboard = [
+        [InlineKeyboardButton("💳 Посмотреть цены", callback_data='prices')],
+        [InlineKeyboardButton("📝 Записаться", callback_data='register')],
+        [InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.callback_query.edit_message_text(
         text=programs_text, 
+        reply_markup=reply_markup, 
+        parse_mode='Markdown'
+    )
+
+async def show_prices(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show prices for season 2025/2026."""
+    prices_text = """
+💳 *Цены на сезон 2025/2026*
+
+🎓 *Разовое занятие (Try-Out):*  
+AED 150 за час
+
+📦 *Полный сезон (сент 2025 — июнь 2026):*  
+до 10 июля — AED 12,500  
+до 31 июля — AED 13,500  
+до 31 августа — AED 14,250  
+с 1 сентября — AED 15,000
+
+📦 *Триместры:*  
+1-й (сент–дек): AED 6,300 *(или 5,000 при оплате до 1 июля)*  
+2-й (янв–март): AED 4,700  
+3-й (апр–июн): AED 5,000
+
+❗ *Все цены + 5% VAT*
+
+🎯 *В стоимость входит:*
+✅ Все тренировки по расписанию
+✅ Участие в турнирах
+✅ Форма Galaxy (при полной оплате)
+✅ Индивидуальная работа тренеров
+
+📞 *Для записи:* +971 50 859 9547
+    """
+    
+    keyboard = [
+        [InlineKeyboardButton("📝 Записаться на Try-Out", callback_data='register')],
+        [InlineKeyboardButton("🏒 О программах", callback_data='programs')],
+        [InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(
+        text=prices_text, 
         reply_markup=reply_markup, 
         parse_mode='Markdown'
     )
@@ -338,27 +396,39 @@ async def show_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def show_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show latest news."""
     news_text = """
-📰 *Последние новости Galaxy Hockey Academy*
+📰 *Новости Galaxy Hockey Academy*
 
-🎉 *15 января 2024*
-Открытие нового сезона! Специальные скидки для новых учеников - 20% на первый месяц обучения.
+🎉 *НОВЫЙ СЕЗОН 2025/2026!*
 
-🏆 *10 января 2024* 
-Наши юниоры заняли 1-е место в Dubai Youth Hockey Championship! Поздравляем команду!
+📅 *Сезон 2025/2026:*
 
-⭐ *5 января 2024*
-Новое оборудование CCM и Bauer уже в нашей академии. Обновленная экипировка для всех программ.
+✅ Зелёным — On-Ice тренировки  
+🔵 Синим — Off-Ice тренировки  
+🔶 Жёлтым — Каникулы  
+🔘 Серым — Праздничные дни
 
-🎯 *1 января 2024*
-С Новым Годом! Специальный новогодний турнир для всех учеников 15 января.
+📆 Тренировки идут с 1 сентября 2025 по 30 июня 2026
 
-📅 *Предстоящие события:*
-• 20 января - День открытых дверей
-• 25 января - Мастер-класс с профессиональным игроком NHL
-• 30 января - Семейный хоккейный день
+💰 *Специальные цены до 10 июля:*
+📦 Полный сезон — всего AED 12,500
+📦 1-й триместр — всего AED 5,000
+
+🏆 *Последние достижения:*
+• Наши юниоры — чемпионы Dubai Youth Hockey Championship!
+• Новая экипировка CCM и Bauer в академии
+• Запуск онлайн-магазина Galaxy Shop
+
+🛒 *В нашем магазине:*
+Теперь вся экипировка доступна для заказа прямо в боте!
+
+📞 *Записывайтесь сейчас:* +971 50 859 9547
     """
     
-    keyboard = [[InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')]]
+    keyboard = [
+        [InlineKeyboardButton("💳 Посмотреть цены", callback_data='prices')],
+        [InlineKeyboardButton("📝 Записаться", callback_data='register')],
+        [InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.callback_query.edit_message_text(
@@ -563,6 +633,41 @@ Sport Society Mall, район Мердив, Дубай 🇦🇪
 *Скоро прямо здесь будет доступна онлайн‑покупка в Telegram!*
 
 📞 *Контакт:* +971 50 859 9547  
+📸 *Instagram:* [galaxy_hockey_academy](https://www.instagram.com/galaxy_hockey_academy?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==)
+
+*Galaxy — сильнейшая хоккейная академия в Персидском заливе!*
+    """
+    
+    await update.message.reply_text(message, parse_mode='Markdown')
+
+async def prices_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /prices command."""
+    message = """
+💳 *Цены на сезон 2025/2026*
+
+🎓 *Разовое занятие (Try-Out):*  
+AED 150 за час
+
+📦 *Полный сезон (сент 2025 — июнь 2026):*  
+до 10 июля — AED 12,500  
+до 31 июля — AED 13,500  
+до 31 августа — AED 14,250  
+с 1 сентября — AED 15,000
+
+📦 *Триместры:*  
+1-й (сент–дек): AED 6,300 *(или 5,000 при оплате до 1 июля)*  
+2-й (янв–март): AED 4,700  
+3-й (апр–июн): AED 5,000
+
+❗ *Все цены + 5% VAT*
+
+🎯 *В стоимость входит:*
+✅ Все тренировки по расписанию
+✅ Участие в турнирах
+✅ Форма Galaxy (при полной оплате)
+✅ Индивидуальная работа тренеров
+
+📞 *Для записи:* +971 50 859 9547
 📸 *Instagram:* [galaxy_hockey_academy](https://www.instagram.com/galaxy_hockey_academy?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==)
 
 *Galaxy — сильнейшая хоккейная академия в Персидском заливе!*
@@ -954,12 +1059,11 @@ async def handle_text_messages(update: Update, context: ContextTypes.DEFAULT_TYP
         )
     elif any(word in user_message for word in ['цена', 'стоимость', 'сколько стоит']):
         await update.message.reply_text(
-            "💰 Наши цены:\n"
-            "🥅 Beginners - 1200 AED\n"
-            "⚡ Intermediate - 1500 AED\n"
-            "🏆 Advanced - 2000 AED\n"
-            "👨‍👩‍👧‍👦 Family Package - 2800 AED\n\n"
-            "Для подробной информации используйте /start → Программы обучения"
+            "💰 Цены сезон 2025/2026:\n"
+            "🎓 Try-Out (разовое) — 150 AED\n"
+            "📦 Полный сезон — от 12,500 AED\n"
+            "📦 Триместры — от 4,700 AED\n\n"
+            "Для подробной информации используйте /prices"
         )
     elif any(word in user_message for word in ['время', 'расписание', 'когда']):
         await update.message.reply_text(
@@ -1006,6 +1110,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("info", info_schedule_command))
     application.add_handler(CommandHandler("schedule", info_schedule_command))
+    application.add_handler(CommandHandler("prices", prices_command))
     application.add_handler(CommandHandler("get_my_id", get_my_id))
     application.add_handler(CommandHandler("admin_registrations", admin_registrations))
     application.add_handler(registration_handler)
