@@ -115,21 +115,23 @@ async def show_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """Show training schedule."""
     schedule_text = """
 📍 *Локация:*
-Galaxy Hockey Academy
-Sport Society Mall, район Мирдиф, Дубай 🇦🇪
+Galaxy Hockey Academy  
+Sport Society Mall, район Мердив, Дубай 🇦🇪
 
-📆 *Тренировки проходят:*
+📆 *Расписание тренировок:*
+
 *Вторник и Четверг:*
-• 🧒 Ю9 и Ю12 — лёд в 19:45
-• 🧑 Ю15 и Ю18 — лёд в 20:45
+• 🧒 Ю9 и Ю12 — лёд в *19:45*  
+• 🧑 Ю15 и Ю18 — лёд в *20:45*
 
 *Воскресенье:*
-• 🧒 Ю9 и Ю12 — лёд в 08:00
-• 🧑 Ю15 и Ю18 — лёд в 09:00
+• 🧒 Ю9 и Ю12 — лёд в *08:00*  
+• 🧑 Ю15 и Ю18 — лёд в *09:00*
 
-❄️ Ледовое поле: профессиональное, с международным стандартом.
+📞 *Контакт:* +971 50 859 9547  
+📸 *Instagram:* [galaxy_hockey_academy](https://www.instagram.com/galaxy_hockey_academy?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==)
 
-✉️ Для записи отправьте команду /start или напишите нам здесь.
+❄️ Ледовое поле — профессиональное, международного стандарта.
 
 *Galaxy — сильнейшая хоккейная академия в Персидском заливе!*
     """
@@ -176,23 +178,27 @@ async def show_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 📞 *Контактная информация*
 
 🏢 *Galaxy Hockey Academy*
-📍 Адрес: Sport Society Mall, район Мирдиф, Дубай 🇦🇪
+📍 Адрес: Sport Society Mall, район Мердив, Дубай 🇦🇪
 
-📱 Телефон: +971 4 448 5111
-📧 Email: info@galaxyhockey.ae
-🌐 Веб-сайт: www.galaxyhockey.ae
+📱 Телефон: +971 50 859 9547
+📸 Instagram: [galaxy_hockey_academy](https://www.instagram.com/galaxy_hockey_academy?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==)
 
-🕐 *Часы работы:*
-Понедельник - Пятница: 15:00 - 22:00
-Суббота - Воскресенье: 10:00 - 22:00
+🕐 *Расписание тренировок:*
+*Вторник и Четверг:*
+• 🧒 Ю9 и Ю12 — лёд в *19:45*  
+• 🧑 Ю15 и Ю18 — лёд в *20:45*
+
+*Воскресенье:*
+• 🧒 Ю9 и Ю12 — лёд в *08:00*  
+• 🧑 Ю15 и Ю18 — лёд в *09:00*
 
 🚗 *Как добраться:*
 • Метро: Ближайшая станция Rashidiya
 • Парковка: Бесплатная парковка в Sport Society Mall
-• Такси: До Sport Society Mall, Мирдиф
+• Такси: До Sport Society Mall, Мердив
 
-💬 *Связаться с нами прямо сейчас:*
-Напишите нам в этом чате, и мы ответим в рабочее время!
+💬 *Связаться с нами:*
+Используйте команду /info или напишите нам здесь!
     """
     
     keyboard = [[InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')]]
@@ -403,21 +409,23 @@ async def info_schedule_command(update: Update, context: ContextTypes.DEFAULT_TY
     """Handle /info and /schedule commands."""
     message = """
 📍 *Локация:*
-Galaxy Hockey Academy
-Sport Society Mall, район Мирдиф, Дубай 🇦🇪
+Galaxy Hockey Academy  
+Sport Society Mall, район Мердив, Дубай 🇦🇪
 
-📆 *Тренировки проходят:*
+📆 *Расписание тренировок:*
+
 *Вторник и Четверг:*
-• 🧒 Ю9 и Ю12 — лёд в 19:45
-• 🧑 Ю15 и Ю18 — лёд в 20:45
+• 🧒 Ю9 и Ю12 — лёд в *19:45*  
+• 🧑 Ю15 и Ю18 — лёд в *20:45*
 
 *Воскресенье:*
-• 🧒 Ю9 и Ю12 — лёд в 08:00
-• 🧑 Ю15 и Ю18 — лёд в 09:00
+• 🧒 Ю9 и Ю12 — лёд в *08:00*  
+• 🧑 Ю15 и Ю18 — лёд в *09:00*
 
-❄️ Ледовое поле: профессиональное, с международным стандартом.
+📞 *Контакт:* +971 50 859 9547  
+📸 *Instagram:* [galaxy_hockey_academy](https://www.instagram.com/galaxy_hockey_academy?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==)
 
-✉️ Для записи отправьте команду /start или напишите нам здесь.
+❄️ Ледовое поле — профессиональное, международного стандарта.
 
 *Galaxy — сильнейшая хоккейная академия в Персидском заливе!*
     """
@@ -452,9 +460,9 @@ async def handle_text_messages(update: Update, context: ContextTypes.DEFAULT_TYP
         )
     elif any(word in user_message for word in ['где', 'адрес', 'локация']):
         await update.message.reply_text(
-            "📍 Мы находимся в Sport Society Mall, район Мирдиф, Дубай 🇦🇪\n"
-            "🚇 Ближайшее метро: Rashidiya\n"
-            "🚗 Бесплатная парковка в Sport Society Mall\n\n"
+            "📍 Мы находимся в Sport Society Mall, район Мердив, Дубай 🇦🇪\n"
+            "📞 Контакт: +971 50 859 9547\n"
+            "📸 Instagram: galaxy_hockey_academy\n\n"
             "Используйте /info для подробной информации"
         )
     else:
