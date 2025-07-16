@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = "8063979941:AAHaqabigWgdIoVF-XDNmxXTY1WdYE9oUVE"
 
 # Admin chat ID (замените на свой Telegram ID)
-ADMIN_CHAT_ID = "YOUR_ADMIN_CHAT_ID"  # Получите свой ID у @userinfobot
+ADMIN_CHAT_ID = "7691112715"  # Chat ID администратора @vlad95955
 
 # Conversation states
 REGISTER_NAME, REGISTER_AGE, REGISTER_PHONE, REGISTER_EXPERIENCE = range(4)
