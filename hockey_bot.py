@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes, ConversationHandler
@@ -14,11 +15,61 @@ logger = logging.getLogger(__name__)
 # Bot token
 BOT_TOKEN = "8063979941:AAHaqabigWgdIoVF-XDNmxXTY1WdYE9oUVE"
 
+# Admin chat ID (замените на свой Telegram ID)
+ADMIN_CHAT_ID = "YOUR_ADMIN_CHAT_ID"  # Получите свой ID у @userinfobot
+
 # Conversation states
 REGISTER_NAME, REGISTER_AGE, REGISTER_PHONE, REGISTER_EXPERIENCE = range(4)
 
 # Store user registrations (in production, use a proper database)
 user_registrations = {}
+
+# File for storing registrations
+REGISTRATIONS_FILE = "registrations.json"
+
+def load_registrations():
+    """Load registrations from file."""
+    global user_registrations
+    try:
+        if os.path.exists(REGISTRATIONS_FILE):
+            with open(REGISTRATIONS_FILE, 'r', encoding='utf-8') as f:
+                user_registrations = json.load(f)
+    except Exception as e:
+        logger.error(f"Ошибка загрузки регистраций: {e}")
+        user_registrations = {}
+
+def save_registrations():
+    """Save registrations to file."""
+    try:
+        with open(REGISTRATIONS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(user_registrations, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"Ошибка сохранения регистраций: {e}")
+
+async def notify_admin(context, user_data, user_info):
+    """Notify admin about new registration."""
+    if ADMIN_CHAT_ID != "YOUR_ADMIN_CHAT_ID":
+        notification = f"""
+🏒 *НОВАЯ РЕГИСТРАЦИЯ В GALAXY HOCKEY ACADEMY* 🏒
+
+👤 *Пользователь:* @{user_info.username or 'без username'} ({user_info.first_name} {user_info.last_name or ''})
+📋 *Данные:*
+• Имя: {user_data['name']}
+• Возраст: {user_data['age']} лет
+• Телефон: {user_data['phone']}
+• Уровень: {user_data['experience']}
+• Дата записи: {user_data['registration_date']}
+
+📱 *Telegram ID:* {user_info.id}
+        """
+        try:
+            await context.bot.send_message(
+                chat_id=ADMIN_CHAT_ID,
+                text=notification,
+                parse_mode='Markdown'
+            )
+        except Exception as e:
+            logger.error(f"Ошибка отправки уведомления админу: {e}")
 
 class HockeyBot:
     def __init__(self):
@@ -352,12 +403,21 @@ async def register_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def register_experience(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Complete registration."""
     user_id = update.effective_user.id
+    user_info = update.effective_user
     experience = update.message.text
     user_registrations[user_id]['experience'] = experience
     user_registrations[user_id]['registration_date'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    user_registrations[user_id]['telegram_username'] = user_info.username or 'без username'
+    user_registrations[user_id]['telegram_name'] = f"{user_info.first_name} {user_info.last_name or ''}".strip()
+    
+    # Save to file
+    save_registrations()
     
     # Get user data
     user_data = user_registrations[user_id]
+    
+    # Notify admin
+    await notify_admin(context, user_data, user_info)
     
     # Recommend program based on experience
     recommended_program = ""
@@ -383,6 +443,8 @@ async def register_experience(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 📞 *Что дальше?*
 Наш менеджер свяжется с вами в течение 24 часов для подтверждения записи и выбора удобного времени тренировок.
+
+📞 *Контакт:* +971 50 859 9547
 
 💬 Если у вас есть вопросы, напишите их в этом чате!
     """
@@ -432,6 +494,57 @@ Sport Society Mall, район Мердив, Дубай 🇦🇪
     
     await update.message.reply_text(message, parse_mode='Markdown')
 
+async def admin_registrations(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show all registrations (admin only)."""
+    user_id = str(update.effective_user.id)
+    
+    # Check if user is admin
+    if user_id != ADMIN_CHAT_ID:
+        await update.message.reply_text("❌ У вас нет доступа к этой команде.")
+        return
+    
+    if not user_registrations:
+        await update.message.reply_text("📋 Регистраций пока нет.")
+        return
+    
+    message = "📊 *ВСЕ РЕГИСТРАЦИИ GALAXY HOCKEY ACADEMY*\n\n"
+    
+    count = 0
+    for user_id, data in user_registrations.items():
+        count += 1
+        message += f"*#{count}*\n"
+        message += f"👤 {data.get('name', 'Неизвестно')}\n"
+        message += f"🎂 {data.get('age', 'Неизвестно')} лет\n"
+        message += f"📱 {data.get('phone', 'Неизвестно')}\n"
+        message += f"🏒 {data.get('experience', 'Неизвестно')}\n"
+        message += f"📅 {data.get('registration_date', 'Неизвестно')}\n"
+        message += f"👨‍💻 @{data.get('telegram_username', 'без username')}\n"
+        message += "➖➖➖➖➖➖➖➖➖➖\n\n"
+    
+    message += f"📈 *Всего регистраций:* {count}"
+    
+    # Split message if too long
+    if len(message) > 4000:
+        parts = []
+        current_part = "📊 *ВСЕ РЕГИСТРАЦИИ GALAXY HOCKEY ACADEMY*\n\n"
+        
+        for user_id, data in user_registrations.items():
+            entry = f"👤 {data.get('name', 'Неизвестно')} | 🎂 {data.get('age', 'Неизвестно')} | 📱 {data.get('phone', 'Неизвестно')}\n"
+            
+            if len(current_part + entry) > 4000:
+                parts.append(current_part)
+                current_part = entry
+            else:
+                current_part += entry
+        
+        if current_part:
+            parts.append(current_part)
+        
+        for part in parts:
+            await update.message.reply_text(part, parse_mode='Markdown')
+    else:
+        await update.message.reply_text(message, parse_mode='Markdown')
+
 async def handle_text_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle any text messages not in conversation."""
     user_message = update.message.text.lower()
@@ -474,6 +587,9 @@ async def handle_text_messages(update: Update, context: ContextTypes.DEFAULT_TYP
 
 def main() -> None:
     """Start the bot."""
+    # Load existing registrations
+    load_registrations()
+    
     application = Application.builder().token(BOT_TOKEN).build()
     
     # Conversation handler for registration
@@ -492,6 +608,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("info", info_schedule_command))
     application.add_handler(CommandHandler("schedule", info_schedule_command))
+    application.add_handler(CommandHandler("admin_registrations", admin_registrations))
     application.add_handler(registration_handler)
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_messages))
