@@ -23,13 +23,9 @@ user_registrations = {}
 class HockeyBot:
     def __init__(self):
         self.training_schedule = {
-            "Monday": "16:00-17:30 - Beginners, 18:00-19:30 - Advanced",
-            "Tuesday": "16:00-17:30 - Intermediate, 18:00-19:30 - Pro Training",
-            "Wednesday": "16:00-17:30 - Youth Team, 18:00-19:30 - Adult League",
-            "Thursday": "16:00-17:30 - Beginners, 18:00-19:30 - Skills Training",
-            "Friday": "16:00-17:30 - Free Skating, 18:00-19:30 - Scrimmage",
-            "Saturday": "10:00-11:30 - Kids Program, 14:00-15:30 - All Levels",
-            "Sunday": "10:00-11:30 - Family Skating, 14:00-15:30 - Tournament Prep"
+            "Tuesday": "🧒 Ю9 и Ю12 — лёд в 19:45\n🧑 Ю15 и Ю18 — лёд в 20:45",
+            "Thursday": "🧒 Ю9 и Ю12 — лёд в 19:45\n🧑 Ю15 и Ю18 — лёд в 20:45", 
+            "Sunday": "🧒 Ю9 и Ю12 — лёд в 08:00\n🧑 Ю15 и Ю18 — лёд в 09:00"
         }
         
         self.training_programs = {
@@ -117,16 +113,26 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def show_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show training schedule."""
-    bot = HockeyBot()
-    
-    schedule_text = "📅 *Расписание тренировок Galaxy Hockey Academy*\n\n"
-    
-    for day, times in bot.training_schedule.items():
-        schedule_text += f"*{day}:*\n{times}\n\n"
-    
-    schedule_text += "⏰ Все время указано по Дубаю (GST)\n"
-    schedule_text += "📍 Локация: Dubai Ice Rink, Dubai Mall\n\n"
-    schedule_text += "_Для записи на конкретное время, используйте кнопку 'Записаться на тренировку'_"
+    schedule_text = """
+📍 *Локация:*
+Galaxy Hockey Academy
+Sport Society Mall, район Мирдиф, Дубай 🇦🇪
+
+📆 *Тренировки проходят:*
+*Вторник и Четверг:*
+• 🧒 Ю9 и Ю12 — лёд в 19:45
+• 🧑 Ю15 и Ю18 — лёд в 20:45
+
+*Воскресенье:*
+• 🧒 Ю9 и Ю12 — лёд в 08:00
+• 🧑 Ю15 и Ю18 — лёд в 09:00
+
+❄️ Ледовое поле: профессиональное, с международным стандартом.
+
+✉️ Для записи отправьте команду /start или напишите нам здесь.
+
+*Galaxy — сильнейшая хоккейная академия в Персидском заливе!*
+    """
     
     keyboard = [[InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -170,7 +176,7 @@ async def show_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 📞 *Контактная информация*
 
 🏢 *Galaxy Hockey Academy*
-📍 Адрес: Dubai Ice Rink, Dubai Mall, Downtown Dubai
+📍 Адрес: Sport Society Mall, район Мирдиф, Дубай 🇦🇪
 
 📱 Телефон: +971 4 448 5111
 📧 Email: info@galaxyhockey.ae
@@ -181,9 +187,9 @@ async def show_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 Суббота - Воскресенье: 10:00 - 22:00
 
 🚗 *Как добраться:*
-• Метро: Станция Burj Khalifa/Dubai Mall
-• Парковка: Бесплатная парковка в Dubai Mall
-• Такси: До Dubai Mall
+• Метро: Ближайшая станция Rashidiya
+• Парковка: Бесплатная парковка в Sport Society Mall
+• Такси: До Sport Society Mall, Мирдиф
 
 💬 *Связаться с нами прямо сейчас:*
 Напишите нам в этом чате, и мы ответим в рабочее время!
@@ -393,6 +399,31 @@ async def cancel_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
     return ConversationHandler.END
 
+async def info_schedule_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /info and /schedule commands."""
+    message = """
+📍 *Локация:*
+Galaxy Hockey Academy
+Sport Society Mall, район Мирдиф, Дубай 🇦🇪
+
+📆 *Тренировки проходят:*
+*Вторник и Четверг:*
+• 🧒 Ю9 и Ю12 — лёд в 19:45
+• 🧑 Ю15 и Ю18 — лёд в 20:45
+
+*Воскресенье:*
+• 🧒 Ю9 и Ю12 — лёд в 08:00
+• 🧑 Ю15 и Ю18 — лёд в 09:00
+
+❄️ Ледовое поле: профессиональное, с международным стандартом.
+
+✉️ Для записи отправьте команду /start или напишите нам здесь.
+
+*Galaxy — сильнейшая хоккейная академия в Персидском заливе!*
+    """
+    
+    await update.message.reply_text(message, parse_mode='Markdown')
+
 async def handle_text_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle any text messages not in conversation."""
     user_message = update.message.text.lower()
@@ -414,17 +445,17 @@ async def handle_text_messages(update: Update, context: ContextTypes.DEFAULT_TYP
         )
     elif any(word in user_message for word in ['время', 'расписание', 'когда']):
         await update.message.reply_text(
-            "📅 Мы работаем:\n"
-            "Пн-Пт: 15:00-22:00\n"
-            "Сб-Вс: 10:00-22:00\n\n"
-            "Для полного расписания тренировок используйте /start → Расписание"
+            "📅 Тренировки проходят:\n"
+            "Вторник и Четверг в 19:45 и 20:45\n"
+            "Воскресенье в 08:00 и 09:00\n\n"
+            "Используйте /schedule для полного расписания"
         )
     elif any(word in user_message for word in ['где', 'адрес', 'локация']):
         await update.message.reply_text(
-            "📍 Мы находимся в Dubai Ice Rink, Dubai Mall\n"
-            "🚇 Ближайшее метро: Burj Khalifa/Dubai Mall\n"
-            "🚗 Бесплатная парковка в Dubai Mall\n\n"
-            "Подробная информация: /start → Контакты"
+            "📍 Мы находимся в Sport Society Mall, район Мирдиф, Дубай 🇦🇪\n"
+            "🚇 Ближайшее метро: Rashidiya\n"
+            "🚗 Бесплатная парковка в Sport Society Mall\n\n"
+            "Используйте /info для подробной информации"
         )
     else:
         await update.message.reply_text(
@@ -451,6 +482,8 @@ def main() -> None:
     
     # Add handlers
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("info", info_schedule_command))
+    application.add_handler(CommandHandler("schedule", info_schedule_command))
     application.add_handler(registration_handler)
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_messages))
