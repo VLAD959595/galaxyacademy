@@ -494,6 +494,24 @@ Sport Society Mall, район Мердив, Дубай 🇦🇪
     
     await update.message.reply_text(message, parse_mode='Markdown')
 
+async def get_my_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Get user's chat ID."""
+    user = update.effective_user
+    chat_id = update.effective_chat.id
+    
+    message = f"""
+🆔 *Ваша информация:*
+
+👤 *Имя:* {user.first_name} {user.last_name or ''}
+👨‍💻 *Username:* @{user.username or 'отсутствует'}
+🆔 *Chat ID:* `{chat_id}`
+📱 *User ID:* `{user.id}`
+
+📋 *Для настройки админа скопируйте Chat ID*
+    """
+    
+    await update.message.reply_text(message, parse_mode='Markdown')
+
 async def admin_registrations(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show all registrations (admin only)."""
     user_id = str(update.effective_user.id)
@@ -608,6 +626,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("info", info_schedule_command))
     application.add_handler(CommandHandler("schedule", info_schedule_command))
+    application.add_handler(CommandHandler("get_my_id", get_my_id))
     application.add_handler(CommandHandler("admin_registrations", admin_registrations))
     application.add_handler(registration_handler)
     application.add_handler(CallbackQueryHandler(button_handler))
