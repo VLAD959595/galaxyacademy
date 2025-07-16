@@ -24,8 +24,37 @@ REGISTER_NAME, REGISTER_AGE, REGISTER_PHONE, REGISTER_EXPERIENCE = range(4)
 # Store user registrations (in production, use a proper database)
 user_registrations = {}
 
+# Store user carts and orders
+user_carts = {}
+user_orders = {}
+
 # File for storing registrations
 REGISTRATIONS_FILE = "registrations.json"
+ORDERS_FILE = "orders.json"
+
+# Shop catalog
+SHOP_CATALOG = {
+    "🏒 Клюшки": {
+        "🥅 Клюшка для вратаря": {"price": 450, "description": "Профессиональная клюшка для вратарей", "stock": 10},
+        "⚡ Клюшка нападающего": {"price": 380, "description": "Легкая клюшка для нападающих и полузащитников", "stock": 15},
+        "🛡️ Клюшка защитника": {"price": 400, "description": "Усиленная клюшка для защитников", "stock": 12}
+    },
+    "👕 Форма": {
+        "🏒 Игровая форма Galaxy": {"price": 220, "description": "Фирменная игровая форма Galaxy Hockey Academy", "stock": 25},
+        "🥶 Тренировочная форма": {"price": 180, "description": "Удобная форма для тренировок", "stock": 30},
+        "🧤 Перчатки хоккейные": {"price": 280, "description": "Защитные перчатки для игры", "stock": 20}
+    },
+    "🪖 Защита": {
+        "⛑️ Шлем с маской": {"price": 320, "description": "Защитный шлем с решеткой", "stock": 18},
+        "🦵 Щитки": {"price": 250, "description": "Защитные щитки для ног", "stock": 22},
+        "🦴 Нагрудник": {"price": 380, "description": "Защита груди и спины", "stock": 15}
+    },
+    "👕 Одежда Galaxy": {
+        "🧥 Худи Galaxy": {"price": 120, "description": "Фирменное худи Galaxy Hockey Academy", "stock": 40},
+        "👕 Футболка Galaxy": {"price": 80, "description": "Стильная футболка с логотипом", "stock": 50},
+        "🧢 Кепка Galaxy": {"price": 60, "description": "Бейсболка с логотипом академии", "stock": 35}
+    }
+}
 
 def load_registrations():
     """Load registrations from file."""
@@ -45,6 +74,25 @@ def save_registrations():
             json.dump(user_registrations, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.error(f"Ошибка сохранения регистраций: {e}")
+
+def load_orders():
+    """Load orders from file."""
+    global user_orders
+    try:
+        if os.path.exists(ORDERS_FILE):
+            with open(ORDERS_FILE, 'r', encoding='utf-8') as f:
+                user_orders = json.load(f)
+    except Exception as e:
+        logger.error(f"Ошибка загрузки заказов: {e}")
+        user_orders = {}
+
+def save_orders():
+    """Save orders to file."""
+    try:
+        with open(ORDERS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(user_orders, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"Ошибка сохранения заказов: {e}")
 
 async def notify_admin(context, user_data, user_info):
     """Notify admin about new registration."""
@@ -127,6 +175,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("📅 Расписание", callback_data='schedule')],
         [InlineKeyboardButton("📝 Записаться на тренировку", callback_data='register')],
+        [InlineKeyboardButton("🛒 Магазин Galaxy", callback_data='shop')],
         [InlineKeyboardButton("🏒 Программы обучения", callback_data='programs')],
         [InlineKeyboardButton("📞 Контакты", callback_data='contact')],
         [InlineKeyboardButton("📰 Новости", callback_data='news')],
@@ -149,6 +198,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await show_schedule(update, context)
     elif query.data == 'register':
         await start_registration(update, context)
+    elif query.data == 'shop':
+        await show_shop_categories(update, context)
     elif query.data == 'programs':
         await show_programs(update, context)
     elif query.data == 'contact':
@@ -159,6 +210,24 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await show_tips(update, context)
     elif query.data == 'back_to_main':
         await start(update, context)
+    elif query.data == 'back_to_shop':
+        await show_shop_categories(update, context)
+    elif query.data == 'view_cart':
+        await show_cart(update, context)
+    elif query.data.startswith('shop_category_'):
+        category = query.data.replace('shop_category_', '').replace('_', ' ')
+        await show_category_items(update, context, category)
+    elif query.data.startswith('shop_item_'):
+        item_data = query.data.replace('shop_item_', '').split('|')
+        await show_item_details(update, context, item_data[0], item_data[1])
+    elif query.data.startswith('add_to_cart_'):
+        item_data = query.data.replace('add_to_cart_', '').split('|')
+        await add_to_cart(update, context, item_data[0], item_data[1])
+    elif query.data.startswith('remove_from_cart_'):
+        item_data = query.data.replace('remove_from_cart_', '').split('|')
+        await remove_from_cart(update, context, item_data[0], item_data[1])
+    elif query.data == 'checkout':
+        await checkout(update, context)
     elif query.data.startswith('program_'):
         await show_program_details(update, context, query.data.split('_')[1])
 
@@ -179,15 +248,20 @@ Sport Society Mall, район Мердив, Дубай 🇦🇪
 • 🧒 Ю9 и Ю12 — лёд в *08:00*  
 • 🧑 Ю15 и Ю18 — лёд в *09:00*
 
+🧢 *Магазин Galaxy:*
+У нас вы можете приобрести фирменную хоккейную экипировку: клюшки, форму, шлемы, худи и многое другое.  
+*Теперь доступна онлайн‑покупка прямо в этом боте!*
+
 📞 *Контакт:* +971 50 859 9547  
 📸 *Instagram:* [galaxy_hockey_academy](https://www.instagram.com/galaxy_hockey_academy?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==)
-
-❄️ Ледовое поле — профессиональное, международного стандарта.
 
 *Galaxy — сильнейшая хоккейная академия в Персидском заливе!*
     """
     
-    keyboard = [[InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')]]
+    keyboard = [
+        [InlineKeyboardButton("🛒 Магазин Galaxy", callback_data='shop')],
+        [InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.callback_query.edit_message_text(
@@ -484,10 +558,12 @@ Sport Society Mall, район Мердив, Дубай 🇦🇪
 • 🧒 Ю9 и Ю12 — лёд в *08:00*  
 • 🧑 Ю15 и Ю18 — лёд в *09:00*
 
+🧢 *Магазин Galaxy:*
+У нас вы можете приобрести фирменную хоккейную экипировку: клюшки, форму, шлемы, худи и многое другое.  
+*Скоро прямо здесь будет доступна онлайн‑покупка в Telegram!*
+
 📞 *Контакт:* +971 50 859 9547  
 📸 *Instagram:* [galaxy_hockey_academy](https://www.instagram.com/galaxy_hockey_academy?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==)
-
-❄️ Ледовое поле — профессиональное, международного стандарта.
 
 *Galaxy — сильнейшая хоккейная академия в Персидском заливе!*
     """
@@ -563,6 +639,309 @@ async def admin_registrations(update: Update, context: ContextTypes.DEFAULT_TYPE
     else:
         await update.message.reply_text(message, parse_mode='Markdown')
 
+# SHOP FUNCTIONS
+
+async def show_shop_categories(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show shop categories."""
+    user_id = update.effective_user.id
+    cart_count = len(user_carts.get(str(user_id), {}))
+    
+    shop_text = f"""
+🛒 *Магазин Galaxy Hockey Academy*
+
+Добро пожаловать в наш онлайн-магазин! 
+Здесь вы найдете лучшую хоккейную экипировку и фирменную одежду Galaxy.
+
+🎯 *Категории товаров:*
+    """
+    
+    keyboard = []
+    for category in SHOP_CATALOG.keys():
+        callback_data = f"shop_category_{category.replace(' ', '_')}"
+        keyboard.append([InlineKeyboardButton(category, callback_data=callback_data)])
+    
+    # Cart and back buttons
+    cart_text = f"🛒 Корзина ({cart_count})" if cart_count > 0 else "🛒 Корзина"
+    keyboard.append([
+        InlineKeyboardButton(cart_text, callback_data='view_cart'),
+        InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')
+    ])
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(
+        text=shop_text, 
+        reply_markup=reply_markup, 
+        parse_mode='Markdown'
+    )
+
+async def show_category_items(update: Update, context: ContextTypes.DEFAULT_TYPE, category: str) -> None:
+    """Show items in a category."""
+    if category not in SHOP_CATALOG:
+        await update.callback_query.answer("Категория не найдена!")
+        return
+    
+    items = SHOP_CATALOG[category]
+    category_text = f"🛍️ *{category}*\n\n"
+    
+    keyboard = []
+    for item_name, item_info in items.items():
+        price = item_info['price']
+        stock = item_info['stock']
+        status = "✅" if stock > 0 else "❌ Нет в наличии"
+        
+        item_text = f"{item_name} - {price} AED {status}"
+        callback_data = f"shop_item_{category}|{item_name}"
+        keyboard.append([InlineKeyboardButton(item_text, callback_data=callback_data)])
+    
+    keyboard.append([
+        InlineKeyboardButton("🔙 К категориям", callback_data='back_to_shop'),
+        InlineKeyboardButton("🛒 Корзина", callback_data='view_cart')
+    ])
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(
+        text=category_text, 
+        reply_markup=reply_markup, 
+        parse_mode='Markdown'
+    )
+
+async def show_item_details(update: Update, context: ContextTypes.DEFAULT_TYPE, category: str, item_name: str) -> None:
+    """Show item details."""
+    if category not in SHOP_CATALOG or item_name not in SHOP_CATALOG[category]:
+        await update.callback_query.answer("Товар не найден!")
+        return
+    
+    item_info = SHOP_CATALOG[category][item_name]
+    
+    item_text = f"""
+🏷️ *{item_name}*
+
+📝 *Описание:* {item_info['description']}
+💰 *Цена:* {item_info['price']} AED
+📦 *В наличии:* {item_info['stock']} шт.
+    """
+    
+    keyboard = []
+    if item_info['stock'] > 0:
+        callback_data = f"add_to_cart_{category}|{item_name}"
+        keyboard.append([InlineKeyboardButton("🛒 Добавить в корзину", callback_data=callback_data)])
+    
+    category_callback = f"shop_category_{category.replace(' ', '_')}"
+    keyboard.append([
+        InlineKeyboardButton(f"🔙 К {category}", callback_data=category_callback),
+        InlineKeyboardButton("🛒 Корзина", callback_data='view_cart')
+    ])
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(
+        text=item_text, 
+        reply_markup=reply_markup, 
+        parse_mode='Markdown'
+    )
+
+async def add_to_cart(update: Update, context: ContextTypes.DEFAULT_TYPE, category: str, item_name: str) -> None:
+    """Add item to cart."""
+    user_id = str(update.effective_user.id)
+    
+    if category not in SHOP_CATALOG or item_name not in SHOP_CATALOG[category]:
+        await update.callback_query.answer("Товар не найден!")
+        return
+    
+    item_info = SHOP_CATALOG[category][item_name]
+    
+    if item_info['stock'] <= 0:
+        await update.callback_query.answer("Товар закончился!")
+        return
+    
+    if user_id not in user_carts:
+        user_carts[user_id] = {}
+    
+    cart_key = f"{category}|{item_name}"
+    if cart_key in user_carts[user_id]:
+        user_carts[user_id][cart_key]['quantity'] += 1
+    else:
+        user_carts[user_id][cart_key] = {
+            'category': category,
+            'item_name': item_name,
+            'price': item_info['price'],
+            'quantity': 1
+        }
+    
+    await update.callback_query.answer(f"✅ {item_name} добавлен в корзину!")
+    
+    # Return to item details
+    await show_item_details(update, context, category, item_name)
+
+async def show_cart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show user's cart."""
+    user_id = str(update.effective_user.id)
+    
+    if user_id not in user_carts or not user_carts[user_id]:
+        cart_text = "🛒 *Ваша корзина пуста*\n\nДобавьте товары из каталога!"
+        keyboard = [[InlineKeyboardButton("🛍️ К покупкам", callback_data='back_to_shop')]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.callback_query.edit_message_text(
+            text=cart_text, 
+            reply_markup=reply_markup, 
+            parse_mode='Markdown'
+        )
+        return
+    
+    cart = user_carts[user_id]
+    cart_text = "🛒 *Ваша корзина:*\n\n"
+    total = 0
+    
+    keyboard = []
+    for cart_key, item in cart.items():
+        item_total = item['price'] * item['quantity']
+        total += item_total
+        
+        cart_text += f"• {item['item_name']}\n"
+        cart_text += f"  💰 {item['price']} AED × {item['quantity']} = {item_total} AED\n\n"
+        
+        # Remove button for each item
+        remove_callback = f"remove_from_cart_{item['category']}|{item['item_name']}"
+        keyboard.append([InlineKeyboardButton(f"❌ Убрать {item['item_name']}", callback_data=remove_callback)])
+    
+    cart_text += f"💳 *Итого: {total} AED*"
+    
+    # Checkout and navigation buttons
+    keyboard.append([InlineKeyboardButton("💳 Оформить заказ", callback_data='checkout')])
+    keyboard.append([
+        InlineKeyboardButton("🛍️ Продолжить покупки", callback_data='back_to_shop'),
+        InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')
+    ])
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(
+        text=cart_text, 
+        reply_markup=reply_markup, 
+        parse_mode='Markdown'
+    )
+
+async def remove_from_cart(update: Update, context: ContextTypes.DEFAULT_TYPE, category: str, item_name: str) -> None:
+    """Remove item from cart."""
+    user_id = str(update.effective_user.id)
+    cart_key = f"{category}|{item_name}"
+    
+    if user_id in user_carts and cart_key in user_carts[user_id]:
+        if user_carts[user_id][cart_key]['quantity'] > 1:
+            user_carts[user_id][cart_key]['quantity'] -= 1
+        else:
+            del user_carts[user_id][cart_key]
+        
+        await update.callback_query.answer(f"✅ {item_name} убран из корзины!")
+    
+    # Refresh cart view
+    await show_cart(update, context)
+
+async def checkout(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Process checkout."""
+    user_id = str(update.effective_user.id)
+    user_info = update.effective_user
+    
+    if user_id not in user_carts or not user_carts[user_id]:
+        await update.callback_query.answer("Корзина пуста!")
+        return
+    
+    cart = user_carts[user_id]
+    order_id = f"ORD_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{user_id}"
+    
+    # Calculate total
+    total = sum(item['price'] * item['quantity'] for item in cart.values())
+    
+    # Create order
+    order = {
+        'order_id': order_id,
+        'user_id': user_id,
+        'user_info': {
+            'username': user_info.username or 'без username',
+            'first_name': user_info.first_name,
+            'last_name': user_info.last_name or ''
+        },
+        'items': cart.copy(),
+        'total': total,
+        'status': 'новый',
+        'order_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    
+    # Save order
+    if user_id not in user_orders:
+        user_orders[user_id] = []
+    user_orders[user_id].append(order)
+    save_orders()
+    
+    # Clear cart
+    user_carts[user_id] = {}
+    
+    # Notify admin about new order
+    await notify_admin_order(context, order)
+    
+    # Show order confirmation
+    order_text = f"""
+✅ *Заказ успешно оформлен!*
+
+📋 *Номер заказа:* {order_id}
+💳 *Сумма:* {total} AED
+📅 *Дата:* {order['order_date']}
+
+📞 *Что дальше?*
+Наш менеджер свяжется с вами для подтверждения заказа и договоренности о доставке.
+
+📱 *Контакт:* +971 50 859 9547
+
+🎯 *Способы получения:*
+• 📍 Самовывоз из Sport Society Mall
+• 🚚 Доставка по Дубаю (по договоренности)
+
+Спасибо за покупку в Galaxy Hockey Academy! 🏒
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Главное меню", callback_data='back_to_main')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(
+        text=order_text, 
+        reply_markup=reply_markup, 
+        parse_mode='Markdown'
+    )
+
+async def notify_admin_order(context, order):
+    """Notify admin about new order."""
+    if ADMIN_CHAT_ID != "YOUR_ADMIN_CHAT_ID":
+        items_text = ""
+        for item in order['items'].values():
+            items_text += f"• {item['item_name']} × {item['quantity']} = {item['price'] * item['quantity']} AED\n"
+        
+        notification = f"""
+🛒 *НОВЫЙ ЗАКАЗ В GALAXY SHOP* 🛒
+
+📋 *Заказ:* {order['order_id']}
+👤 *Покупатель:* @{order['user_info']['username']} ({order['user_info']['first_name']} {order['user_info']['last_name']})
+
+📦 *Товары:*
+{items_text}
+💳 *Итого:* {order['total']} AED
+
+📅 *Дата заказа:* {order['order_date']}
+📱 *Telegram ID:* {order['user_id']}
+
+❗ Свяжитесь с покупателем для подтверждения заказа!
+        """
+        try:
+            await context.bot.send_message(
+                chat_id=ADMIN_CHAT_ID,
+                text=notification,
+                parse_mode='Markdown'
+            )
+        except Exception as e:
+            logger.error(f"Ошибка отправки уведомления о заказе: {e}")
+
 async def handle_text_messages(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle any text messages not in conversation."""
     user_message = update.message.text.lower()
@@ -605,8 +984,9 @@ async def handle_text_messages(update: Update, context: ContextTypes.DEFAULT_TYP
 
 def main() -> None:
     """Start the bot."""
-    # Load existing registrations
+    # Load existing registrations and orders
     load_registrations()
+    load_orders()
     
     application = Application.builder().token(BOT_TOKEN).build()
     
